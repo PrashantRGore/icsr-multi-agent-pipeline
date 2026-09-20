@@ -1,7 +1,7 @@
 """
 schemas/audit.py
 ================
-AuditLogEntry, HITLReviewRecord — 21 CFR Part 11 compliant audit trail schemas.
+AuditLogEntry, HITLReviewRecord — audit trail schemas supporting selected 21 CFR Part 11 controls.
 
 Design decisions (v4):
   - AuditLogEntry is the atomic immutable audit unit; one per agent invocation.

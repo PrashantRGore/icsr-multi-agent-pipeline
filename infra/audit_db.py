@@ -1,7 +1,7 @@
 """
 infra/audit_db.py
 =================
-21 CFR Part 11 compliant immutable SQLite audit database.
+21 CFR Part 11-oriented immutable SQLite audit database.
 
 Compliance guarantees:
   1. IMMUTABILITY:  An UPDATE or DELETE trigger raises an error on audit_log.
@@ -142,7 +142,9 @@ CREATE INDEX IF NOT EXISTS idx_hitl_queue_status ON hitl_queue (status);
 
 class AuditDB(EncryptedDBMixin):
     """
-    21 CFR Part 11 compliant immutable SQLite audit database.
+    Append-only SQLite database supporting selected 21 CFR Part 11 controls:
+    immutability triggers, reviewer identity on every record, and encrypted
+    column-level storage. Not formally validated for regulatory submission.
 
     Thread safety: sqlite3.connect() is not thread-safe for concurrent writes.
     This class uses a context manager for each operation, relying on SQLite's

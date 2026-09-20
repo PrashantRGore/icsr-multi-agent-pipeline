@@ -53,7 +53,7 @@ The project is designed with a single non-negotiable constraint: **zero recurrin
 | 🤖 **7-Agent LangGraph Pipeline** | Extraction → RxNorm → Triage → Coding → Causality → Narrative → QC Auditor |
 | 🔒 **21 CFR Part 11 Audit Trail** | Immutable SQLite `audit_log` with UPDATE/DELETE triggers; content hashing |
 | 👁️ **HITL Review API** | FastAPI server with `X-API-Key` auth; QPPV review, correction, and sign-off |
-| 📄 **ICH E2B(R3) XML Export** | Standards-compliant XML with CTCAE-coded reactions and ADR-001 MedDRA note |
+| 📄 **ICH E2B(R3) XML Export** | E2B(R3)-structured XML with CTCAE-coded reactions and ADR-001 MedDRA note |
 | 🏷️ **Adverse Event Coding** | CTCAE v5 + OAE (CC BY 4.0) via FAISS semantic search |
 | 💊 **Drug Normalisation** | RxNorm REST API (NLM) — no API key, rate-limited at 85 req/min |
 | 🔐 **PII De-identification** | Microsoft Presidio + spaCy `en_core_web_lg`; Fernet-encrypted entity maps |
@@ -583,8 +583,10 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | NCI CTCAE v5 | U.S. National Cancer Institute | US Gov — Public Domain |
 | OAE (Ontology of Adverse Events) | OBO Foundry | CC BY 4.0 — He Y et al., *J Biomed Semantics* 2014 |
 | RxNorm | U.S. National Library of Medicine | NLM Terms of Service (free) |
-| WHO-UMC Causality Scale | Uppsala Monitoring Centre | Publicly available |
+| WHO-UMC Causality Scale | Uppsala Monitoring Centre | Publicly available for non-commercial use |
 | FDA DailyMed SPL | U.S. FDA / NLM | US Gov — Public Domain |
+
+> **WHO-UMC note:** The causality-assessment implementation is included for **research and demonstration purposes only**. Organisations planning commercial deployment should verify applicable WHO-UMC terms before use.
 
 **Open-Source Software**
 

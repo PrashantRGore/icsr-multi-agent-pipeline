@@ -1,7 +1,7 @@
 """
 infra/auth_db.py
 ================
-Reviewer API-key store for 21 CFR Part 11 compliant identity management.
+Reviewer API-key store supporting 21 CFR Part 11 identity controls.
 
 Design decisions:
   - Separate SQLite DB (audit/auth.db) — never mixed with the immutable audit trail.

@@ -33,13 +33,15 @@ Environment variables (see .env.example):
   NEG_PATH             : Clinical negatives JSON (default: data/clinical_negatives.json)
   CHECKPOINT_DB_PATH   : LangGraph checkpoint DB (default: checkpoints/pipeline.db)
   PII_MAPS_DIR         : Directory for entity map files (default: data/pii_maps)
-  PII_ENCRYPTION_KEY   : Fernet key for encrypting entity maps (optional)
-  DB_ENCRYPTION_KEY    : Fernet key for AuditDB column encryption (optional)
+  PII_ENCRYPTION_KEY   : Fernet key for encrypting entity maps (REQUIRED in production)
+  DB_ENCRYPTION_KEY    : Fernet key for AuditDB column encryption (REQUIRED in production)
+  APP_ENV              : Set to 'production' to enforce encryption key requirements at startup
 """
 from __future__ import annotations
 
 import logging
 import os
+import sys
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -91,6 +93,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("HITL Server: starting up …")
 
     # ── Configuration from environment ───────────────────────────────────────
+    app_env          = os.getenv("APP_ENV", "development").lower()
     ollama_host      = os.getenv("OLLAMA_HOST",        "http://localhost:11434")
     ollama_model     = os.getenv("OLLAMA_MODEL",       "llama3.1:8b-instruct-q4_K_M")
     audit_db_path    = os.getenv("AUDIT_DB_PATH",      "audit/audit.db")
@@ -104,6 +107,38 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     pii_maps_dir     = os.getenv("PII_MAPS_DIR",       "data/pii_maps")
     pii_enc_key      = os.getenv("PII_ENCRYPTION_KEY", "")
     db_enc_key       = os.getenv("DB_ENCRYPTION_KEY",  "")
+
+    # ── Production encryption guard ──────────────────────────────────────────
+    # In production, both encryption keys are REQUIRED. Unencrypted audit logs
+    # and PII entity maps in a production environment is a privacy violation.
+    if app_env == "production":
+        missing_keys: list[str] = []
+        if not db_enc_key:
+            missing_keys.append("DB_ENCRYPTION_KEY")
+        if not pii_enc_key:
+            missing_keys.append("PII_ENCRYPTION_KEY")
+        if missing_keys:
+            logger.critical(
+                "STARTUP ABORTED: APP_ENV=production but required encryption key(s) "
+                "are not set: %s. "
+                "Generate keys with: python -c \"from cryptography.fernet import Fernet; "
+                "print(Fernet.generate_key().decode())\" "
+                "and set them in your .env file.",
+                ", ".join(missing_keys),
+            )
+            sys.exit(1)
+        logger.info("HITL Server: production mode — encryption keys verified.")
+    else:
+        if not db_enc_key:
+            logger.warning(
+                "DB_ENCRYPTION_KEY not set — AuditDB stored without column encryption. "
+                "Set APP_ENV=production to enforce encryption at startup."
+            )
+        if not pii_enc_key:
+            logger.warning(
+                "PII_ENCRYPTION_KEY not set — PII entity maps stored in plaintext. "
+                "Set APP_ENV=production to enforce encryption at startup."
+            )
 
     # ── Infrastructure ───────────────────────────────────────────────────────
     llm         = OllamaClient(host=ollama_host, model=ollama_model)

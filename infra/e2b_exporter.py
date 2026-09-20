@@ -45,7 +45,7 @@ _MEDDRA_ADR_COMMENT = (
     "MedDRA LLT/PT required for regulatory submission. "
     "Current value is CTCAE v5 preferred term. "
     "Organisations holding a valid MedDRA licence may integrate the "
-    "CTCAE-to-MedDRA crosswalk to make this export fully E2B(R3) compliant. "
+    "CTCAE-to-MedDRA crosswalk to make this export E2B(R3)-structured. "
     "See governance/decisions.md ADR-001."
 )
 

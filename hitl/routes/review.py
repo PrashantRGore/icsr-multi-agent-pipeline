@@ -9,7 +9,7 @@ Endpoints:
   POST /api/v1/review/{review_id}/submit   — Submit human correction + resume pipeline
   POST /api/v1/cases/run                   — Submit a new case for processing
 
-21 CFR Part 11 compliance:
+21 CFR Part 11 audit trail controls:
   - Every correction is written to AuditDB (hitl_review_log table)
   - reviewer_id is recorded on every correction (no anonymous edits)
   - Rejected cases remain in audit trail with approved=False
@@ -316,10 +316,22 @@ def run_new_case(
                     body.case_id, len(deid_result.entities_found), deid_result.map_path,
                 )
         except Exception as deid_exc:
-            # De-identification failures must NEVER block case processing
-            logger.warning(
-                "PIIDeidentifier: failed for case_id=%s: %s — processing original narrative",
+            # ── Privacy-first: de-identification failure → REJECT case ────────
+            # Sending unredacted PHI to the LLM is worse than losing one case.
+            # Route to authorized human review; do not process the original text.
+            logger.error(
+                "PIIDeidentifier: SECURITY EVENT — de-identification FAILED for "
+                "case_id=%s: %s. Rejecting case to prevent PHI exposure (privacy-first policy).",
                 body.case_id, deid_exc,
+            )
+            raise HTTPException(
+                status_code = status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail = (
+                    f"PII de-identification failed for case_id={body.case_id!r}. "
+                    "Case rejected — patient privacy protected. "
+                    "Please inspect the narrative manually and re-submit, "
+                    "or contact the system administrator to diagnose the Presidio engine."
+                ),
             )
 
     import time as _time

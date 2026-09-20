@@ -4,7 +4,7 @@ agents/narrative_agent.py
 Narrative Agent — Stage 7 (final) of the ICSR processing pipeline.
 
 Responsibilities:
-  1. Synthesise a complete, CIOMS-I / ICH E2B(R3)-compliant narrative
+  1. Synthesise a complete, CIOMS-I / ICH E2B(R3)-structured narrative
      from the pipeline outputs assembled in GraphState
   2. Write the narrative to the partial_e2b blackboard key "H.1" (narrative text)
   3. Verify that all key entities are mentioned (QC self-check)
@@ -46,7 +46,7 @@ PROMPT_VERSION = "narrative-prompt-v1.0"
 
 _NARRATIVE_SYSTEM = """\
 You are an expert pharmacovigilance (PV) medical writer.
-Write a concise, factual CIOMS-I / ICH E2B(R3)-compliant ICSR narrative in English.
+Write a concise, factual CIOMS-I / ICH E2B(R3)-structured ICSR narrative in English.
 
 Structure your narrative in this order (omit sections where data is absent):
 1. Patient: [age/sex/weight/country] — demographics

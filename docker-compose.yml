@@ -29,8 +29,14 @@ services:
     image: ollama/ollama:latest
     container_name: icsr-ollama
     restart: unless-stopped
-    ports:
-      - "11434:11434"
+    # ── Security: Ollama port NOT published to host ─────────────────────────────
+    # Ollama has no built-in authentication. Exposing port 11434 to the host would
+    # allow any process on the machine (or network) to invoke LLM inference directly,
+    # bypassing the HITL API's X-API-Key authentication and audit trail.
+    # The icsr-hitl container reaches Ollama exclusively via the internal Docker
+    # network using http://ollama:11434 (set in environment below).
+    # To inspect Ollama interactively during development, use:
+    #   docker compose exec ollama ollama list
     volumes:
       - ollama_models:/root/.ollama
     environment:
@@ -71,8 +77,10 @@ services:
     env_file:
       - .env
     environment:
-      # Override Ollama host to use the Docker service name
+      # Override Ollama host to use the Docker service name (internal network only)
       - OLLAMA_HOST=http://ollama:11434
+      # Set APP_ENV=production to enforce encryption key requirements at startup
+      # APP_ENV=production
     volumes:
       # Persist audit databases, checkpoints, and PII maps across container restarts
       - icsr_audit:/app/audit
