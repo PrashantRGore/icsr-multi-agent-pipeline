@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "case_id": "ICSR-20240520-SYN",
+    "description": "Synthetic Case 003 — Valid, TIER_2 serious, event expected to be UNLISTED. Patient on atorvastatin developed drug-induced liver injury (DILI) with jaundice and elevated transaminases. The RSI lookup for atorvastatin should find 'liver enzyme elevation' as LISTED but 'jaundice with acute liver failure features' may be UNLISTED depending on SPL version — tests listedness boundary. This case also includes a positive rechallenge scenario to test E_temp graph validation.",
+    "test_assertions": [
+      "TriageOutput.status == VALID",
+      "TriageOutput.risk_tier == TIER_2",
+      "SuspectDrug.drug_name contains 'atorvastatin'",
+      "SuspectDrug.dechallenge == YES",
+      "SuspectDrug.rechallenge == YES (see narrative)",
+      "VerbatimEvent.serious == True",
+      "SeriousnessCriterion.HOSPITALIZATION in seriousness_criteria",
+      "HospitalizationDetails is populated",
+      "CausalityTerm == RELATED or POSSIBLY_RELATED",
+      "ListednessStatus == UNLISTED for acute liver failure (test RSI boundary)",
+      "expedited_reporting == True if UNLISTED + serious",
+      "E_temp graph: drug_start(Day 0) -> event_onset(Day 45) -> drug_stop(Day 47) -> partial_resolution(Day 60) -> drug_restart(Day 90) -> recurrence(Day 95)"
+    ]
+  },
+  "raw_narrative": "A 58-year-old male retired teacher was initiated on atorvastatin 40mg once daily on 01 February 2024 for primary hypercholesterolemia. His baseline LFTs were within normal limits. Approximately 45 days after initiation (approximately 17 March 2024), the patient began experiencing progressive fatigue, right upper quadrant abdominal pain, and jaundice. He was admitted to General Hospital on 18 March 2024. Laboratory investigations revealed ALT 820 U/L (reference range <40 U/L), AST 650 U/L, total bilirubin 5.2 mg/dL, and alkaline phosphatase 320 U/L. Acute viral hepatitis A, B, C, D, and E serology was negative. Autoimmune hepatitis markers were negative. No other hepatotoxic drugs were identified. Atorvastatin was discontinued on 20 March 2024 (dechallenge). The patient was discharged from hospital on 01 April 2024. Transaminases began normalizing by 15 April 2024 (ALT 180 U/L). On 01 May 2024, despite the clinical team's recommendation, the patient self-restarted atorvastatin 40mg daily (rechallenge). Within 5 days (by approximately 06 May 2024), the patient reported recurrence of fatigue and abdominal discomfort. Repeat LFTs showed ALT 420 U/L. Atorvastatin was permanently discontinued on 07 May 2024. Concomitant medications: amlodipine 5mg OD (for hypertension — no dose changes). Reporter: attending hepatologist, Dr. S.M. (licensed physician, US). Outcome: Recovering / resolving at time of report.",
+  "source_type": "Healthcare professional spontaneous report",
+  "country": "US",
+  "received_date": "2024-05-20"
+}

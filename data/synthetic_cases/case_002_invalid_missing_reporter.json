@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "case_id": "ICSR-20240402-SYN",
+    "description": "Synthetic Case 002 — INVALID: Missing identifiable reporter. The narrative contains a patient, a drug, and an AE but the reporter is anonymous / unidentifiable. This case must fail the ICH E2A minimum criteria check and route to INVALID status with a failure_reason listing the missing reporter criterion.",
+    "test_assertions": [
+      "TriageOutput.status == INVALID",
+      "TriageOutput.criteria.has_identifiable_reporter == False",
+      "TriageOutput.criteria.all_met == False",
+      "TriageOutput.failure_reasons is non-empty",
+      "Pipeline terminates at TRIAGE — extraction agent NOT invoked",
+      "AuditLogEntry.status == HITL_QUEUED or FAILED (not SUCCESS)"
+    ]
+  },
+  "raw_narrative": "An anonymous submission was received via an online patient portal. A patient (age and sex not provided) reported experiencing severe headaches and dizziness after taking 'a blood pressure pill' for approximately two weeks. The patient did not provide their name, contact details, or healthcare provider information. No reporter qualification is available. The specific medication name was not provided beyond 'a blood pressure pill'. No medical history was shared. The patient indicated the symptoms started roughly three days after beginning the medication and have continued for 11 days at the time of writing. No outcome information was provided.",
+  "source_type": "Anonymous patient portal submission",
+  "country": "UNKNOWN",
+  "received_date": "2024-04-02"
+}

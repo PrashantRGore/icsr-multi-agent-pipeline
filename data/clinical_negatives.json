@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Hard Negative Edges ontology for PV causality QC. Used by QCAgent to block invalid drug-AE causality inferences before LLM reasoning. Based on well-established pharmacological knowledge. Extend by adding entries to drug_class_rules or drug_specific_rules.",
+    "edge_types": {
+      "DOES_NOT_TREAT": "The drug has no therapeutic indication for the condition; inferring the condition is caused by the drug treating something else is invalid",
+      "CONTRAINDICATED_WITH": "The drug is formally contraindicated in patients with this condition; co-occurrence does NOT imply causality — it signals a prescribing error to be flagged separately",
+      "NOT_INDICATED_FOR": "The drug is not approved or indicated for this condition or symptom",
+      "INCREASES_RISK_OF": "The drug is known to INCREASE risk (positive causal signal — this is a VALID causality direction; do NOT use this as a hard block)",
+      "DECREASES_EFFECT_OF": "The drug attenuates or inhibits this biological process or drug"
+    },
+    "qc_rule": "When QCAgent detects a causality_term of RELATED or POSSIBLY_RELATED for a (drug_class OR drug_name, ae_term) pair that appears in this ontology under a DOES_NOT_TREAT or CONTRAINDICATED_WITH edge, it MUST downgrade the assessment to UNLIKELY_RELATED or NOT_RELATED and populate HardNegativeViolation."
+  },
+
+  "drug_class_rules": [
+    {
+      "drug_class_keyword": "SSRI",
+      "ae_term_keywords": ["platelet aggregation increased", "clot formation accelerated"],
+      "edge_type": "DOES_NOT_TREAT",
+      "rationale": "SSRIs inhibit serotonin reuptake in platelets, reducing aggregation. Increased clotting as a primary AE is pharmacologically inconsistent."
+    },
+    {
+      "drug_class_keyword": "ACE inhibitor",
+      "ae_term_keywords": ["hyperkalemia", "hyperkalaemia", "elevated potassium"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "ACE inhibitors increase potassium retention via RAAS suppression. THIS IS A VALID CAUSAL DIRECTION — not a block."
+    },
+    {
+      "drug_class_keyword": "beta-blocker",
+      "ae_term_keywords": ["tachycardia", "rapid heart rate", "heart rate increase"],
+      "edge_type": "DOES_NOT_TREAT",
+      "rationale": "Beta-blockers cause bradycardia. Tachycardia as a direct AE of a beta-blocker is pharmacologically inconsistent and likely represents a misattribution or rebound."
+    },
+    {
+      "drug_class_keyword": "anticoagulant",
+      "ae_term_keywords": ["thrombosis", "blood clot", "deep vein thrombosis", "pulmonary embolism"],
+      "edge_type": "DOES_NOT_TREAT",
+      "rationale": "Anticoagulants prevent clot formation. Thrombosis as a primary AE of anticoagulant therapy is inconsistent unless related to heparin-induced thrombocytopenia (HIT) — flag for HIT workup separately."
+    },
+    {
+      "drug_class_keyword": "diuretic",
+      "ae_term_keywords": ["fluid retention", "edema worsening", "oedema worsening"],
+      "edge_type": "DOES_NOT_TREAT",
+      "rationale": "Diuretics promote fluid excretion. Fluid retention as a direct AE is pharmacologically inconsistent unless tolerance or rebound is documented."
+    },
+    {
+      "drug_class_keyword": "statin",
+      "ae_term_keywords": ["myopathy", "rhabdomyolysis", "muscle pain", "myalgia"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Statins are known to cause myopathy/rhabdomyolysis via CoQ10 depletion. VALID causal direction — not a block."
+    },
+    {
+      "drug_class_keyword": "NSAID",
+      "ae_term_keywords": ["gastrointestinal bleeding", "peptic ulcer", "gastric ulcer", "GI bleed"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "NSAIDs inhibit COX-1, reducing gastroprotective prostaglandins. GI bleeding is a well-established NSAID AE. VALID causal direction."
+    },
+    {
+      "drug_class_keyword": "corticosteroid",
+      "ae_term_keywords": ["hyperglycemia", "blood glucose increase", "hyperglycaemia"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Corticosteroids cause insulin resistance and hyperglycemia. VALID causal direction."
+    },
+    {
+      "drug_class_keyword": "opioid",
+      "ae_term_keywords": ["diarrhea", "diarrhoea", "bowel hypermotility"],
+      "edge_type": "DOES_NOT_TREAT",
+      "rationale": "Opioids cause constipation via mu-receptor activation in the gut. Diarrhea as a primary opioid AE is pharmacologically inconsistent (may indicate withdrawal)."
+    },
+    {
+      "drug_class_keyword": "chemotherapy",
+      "ae_term_keywords": ["neutropenia", "leukopenia", "bone marrow suppression"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Myelosuppression is expected with most cytotoxic chemotherapy agents. VALID causal direction."
+    }
+  ],
+
+  "drug_specific_rules": [
+    {
+      "drug_name_keywords": ["metformin", "glucophage"],
+      "ae_term_keywords": ["lactic acidosis"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Metformin-associated lactic acidosis (MALA) is a rare but documented serious AE. VALID causal direction — requires renal function assessment."
+    },
+    {
+      "drug_name_keywords": ["warfarin", "coumadin"],
+      "ae_term_keywords": ["thrombosis", "clot", "DVT"],
+      "edge_type": "CONTRAINDICATED_WITH",
+      "rationale": "Warfarin is prescribed specifically to prevent thrombosis. Thrombosis while on therapeutic warfarin may indicate INR under-anticoagulation — not a direct drug AE."
+    },
+    {
+      "drug_name_keywords": ["digoxin", "lanoxin"],
+      "ae_term_keywords": ["tachycardia"],
+      "edge_type": "DOES_NOT_TREAT",
+      "rationale": "Digoxin slows heart rate via vagal stimulation. Tachycardia as a primary AE of digoxin is pharmacologically inconsistent at therapeutic doses; may indicate digitalis toxicity context which is a separate pattern."
+    },
+    {
+      "drug_name_keywords": ["lithium"],
+      "ae_term_keywords": ["tremor", "hand tremor", "fine tremor"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Lithium causes fine tremor as a dose-dependent AE. VALID causal direction."
+    },
+    {
+      "drug_name_keywords": ["haloperidol", "haldol"],
+      "ae_term_keywords": ["extrapyramidal symptoms", "akathisia", "tardive dyskinesia", "dystonia"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "D2 antagonism by haloperidol causes EPS. VALID causal direction."
+    },
+    {
+      "drug_name_keywords": ["amiodarone"],
+      "ae_term_keywords": ["thyroid dysfunction", "hypothyroidism", "hyperthyroidism", "pulmonary toxicity"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Amiodarone contains iodine (37% by weight) and is a well-documented cause of thyroid dysfunction and pulmonary toxicity. VALID causal direction."
+    },
+    {
+      "drug_name_keywords": ["clozapine"],
+      "ae_term_keywords": ["agranulocytosis", "granulocyte count decrease"],
+      "edge_type": "INCREASES_RISK_OF",
+      "rationale": "Clozapine-induced agranulocytosis is a black-box warning requiring mandatory ANC monitoring. VALID causal direction."
+    }
+  ]
+}

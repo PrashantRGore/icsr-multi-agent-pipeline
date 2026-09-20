@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "case_id": "ICSR-20240315-SYN",
+    "description": "Synthetic Case 001 — Valid serious SAE. Patient developed anaphylaxis after amoxicillin administration. TIER_1 (life-threatening). Dechallenge positive. Rechallenge not performed. Expected to route through full pipeline and reach QPPV review stage.",
+    "test_assertions": [
+      "TriageOutput.status == VALID",
+      "TriageOutput.risk_tier == TIER_1",
+      "TriageOutput.oversight_mode == HITL",
+      "ExtractedCaseEntities.suspect_drugs[0].drug_name contains 'amoxicillin'",
+      "ExtractedCaseEntities.verbatim_events[0].serious == True",
+      "VerbatimEvent.seriousness_criteria contains Life-threatening",
+      "SuspectDrug.dechallenge == YES",
+      "SuspectDrug.rechallenge == NOT_REPORTED",
+      "CausalityTerm == RELATED or POSSIBLY_RELATED",
+      "ListednessStatus == LISTED (anaphylaxis is labeled for penicillins)"
+    ]
+  },
+  "raw_narrative": "A 34-year-old female healthcare professional (reporter) presented to the emergency department with acute anaphylaxis approximately 20 minutes after receiving her first dose of amoxicillin 500mg orally for a community-acquired respiratory tract infection. The patient reported no prior allergies to penicillins or other antibiotics. Within minutes of administration (dose administered at 09:15 on 14 March 2024), she developed generalized urticaria, throat tightening, severe dyspnoea, and hypotension (BP 70/40 mmHg). She was admitted to hospital on 14 March 2024. The drug was immediately discontinued upon recognition of the reaction (dechallenge). Following administration of intramuscular epinephrine 0.5mg, intravenous diphenhydramine, and systemic corticosteroids, the patient's symptoms resolved within 6 hours. She was discharged from hospital on 15 March 2024 with a documented penicillin allergy. Amoxicillin was not re-administered (rechallenge not performed). No other suspect medications were identified. Concomitant medications: None. Medical history: No known drug allergies prior to this event. Outcome: Recovered / resolved.",
+  "source_type": "Healthcare professional spontaneous report",
+  "country": "US",
+  "received_date": "2024-03-15"
+}

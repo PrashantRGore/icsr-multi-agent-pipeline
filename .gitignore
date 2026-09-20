@@ -1,0 +1,108 @@
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.pyo
+.Python
+
+# ─── Virtual environments ─────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env/
+
+# ─── Environment / secrets (NEVER commit real .env) ──────────────────────────
+# .env.example IS committed (it has no real values)
+.env
+.env.local
+.env.production
+.env.staging
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ─── Runtime databases (contain operational / test data) ─────────────────────
+# These are runtime artefacts — they are created on first start, not source code.
+# Committing them would expose hashed reviewer keys (auth.db) and audit records.
+audit/audit.db
+audit/auth.db
+audit/learning.db
+audit/rxnorm_cache.db
+data/rxnorm_cache.db
+checkpoints/*.db
+*.db-shm
+*.db-wal
+
+# ─── FAISS indices (large binary artefacts built by scripts) ─────────────────
+# Rebuilt by: python scripts/build_ctcae_index.py && python scripts/build_oae_index.py
+data/*.faiss
+data/*_meta.json
+data/*.index
+
+# ─── PII entity maps (may contain patient data from live/test runs) ───────────
+data/pii_maps/
+
+# ─── LangGraph checkpoints ───────────────────────────────────────────────────
+checkpoints/
+
+# ─── spaCy downloaded models ─────────────────────────────────────────────────
+# Downloaded by: python -m spacy download en_core_web_lg
+# These are large (~750 MB) and available via spacy download
+*.egg-info/
+
+# ─── Pytest / test artefacts ─────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ─── Build / distribution ────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.whl
+*.tar.gz
+MANIFEST
+
+# ─── IDE / editor ────────────────────────────────────────────────────────────
+# .vscode/settings.json is committed — it only contains git.ignoreLimitWarning
+# Add other VS Code files that may contain personal settings:
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/*.code-snippets
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Temporary / OS generated ────────────────────────────────────────────────
+*.tmp
+*.temp
+.cache/
+
+# ─── Generated PSMF reports (output artefacts, not source) ───────────────────
+# Note: psmf_template.md IS committed (it is source). Only dated generated
+# reports (e.g. PSMF_0.6.0_2026-09-20.md) are excluded.
+governance/PSMF_*.md
+!governance/psmf_template.md
+
+# ─── Downloaded / generated data files ───────────────────────────────────────
+# OAE ontology is downloaded by build_oae_index.py — not source code
+data/oae.owl
+data/rsi_spl/
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+# Named volumes are managed by Docker — not stored in the repo
+# No Docker-specific files need ignoring (compose files are committed)

@@ -1,0 +1,134 @@
+MIT License
+
+Copyright (c) 2026 ICSR Engine Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+THIRD-PARTY NOTICES
+-------------------------------------------------------------------------------
+
+This project incorporates or depends upon the following open-source components.
+Each is subject to its own licence terms as listed below.
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Component              │ Licence              │ Copyright                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ LangGraph              │ MIT                  │ LangChain AI                │
+│ LangChain Community    │ MIT                  │ LangChain AI                │
+│ FastAPI                │ MIT                  │ Sebastián Ramírez           │
+│ Pydantic               │ MIT                  │ Samuel Colvin et al.        │
+│ Uvicorn                │ BSD-3-Clause         │ Encode Open Source          │
+│ Microsoft Presidio     │ MIT                  │ Microsoft Corporation       │
+│ FAISS                  │ MIT                  │ Meta Platforms Inc.         │
+│ sentence-transformers  │ Apache 2.0           │ UKP Lab, TU Darmstadt       │
+│ spaCy                  │ MIT                  │ Explosion AI GmbH           │
+│ Ollama (Python client) │ MIT                  │ Ollama contributors         │
+│ cryptography           │ Apache 2.0 / BSD     │ cryptography.io developers  │
+│ bcrypt                 │ Apache 2.0           │ The bcrypt authors          │
+│ pandas                 │ BSD-3-Clause         │ Pandas Development Team     │
+│ NumPy                  │ BSD-3-Clause         │ NumPy Developers            │
+│ networkx               │ BSD-3-Clause         │ NetworkX Developers         │
+│ owlready2              │ LGPL-3.0             │ Jean-Baptiste Lamy          │
+│ lxml                   │ BSD-3-Clause         │ lxml developers             │
+│ requests               │ Apache 2.0           │ Kenneth Reitz et al.        │
+│ httpx                  │ BSD-3-Clause         │ Encode Open Source          │
+│ pytest                 │ MIT                  │ pytest-dev team             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TERMINOLOGY AND DATA SOURCES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NCI CTCAE v5 (Common Terminology Criteria for Adverse Events)
+  - Source:  U.S. National Cancer Institute
+  - Licence: U.S. Government work — public domain in the United States
+  - URL:     https://ctep.cancer.gov/protocoldevelopment/electronic_applications/ctc.htm
+
+OAE (Ontology of Adverse Events)
+  - Source:  OBO Foundry
+  - Licence: Creative Commons Attribution 4.0 International (CC BY 4.0)
+  - Citation: He Y, Sarntivijai S, Lin Y, et al. OAE: The Ontology of Adverse Events.
+              J Biomed Semantics. 2014;5:29. doi:10.1186/2041-1480-5-29
+
+RxNorm
+  - Source:  U.S. National Library of Medicine (NLM)
+  - Licence: NLM Terms of Service (free for non-commercial and commercial use with attribution)
+  - URL:     https://www.nlm.nih.gov/research/umls/rxnorm/
+
+WHO-UMC Causality Assessment Scale
+  - Source:  Uppsala Monitoring Centre (WHO Programme for International Drug Monitoring)
+  - Licence: Publicly available for non-commercial use
+  - URL:     https://www.who-umc.org/
+
+FDA DailyMed Structured Product Labelling (SPL)
+  - Source:  U.S. Food and Drug Administration / U.S. National Library of Medicine
+  - Licence: U.S. Government work — public domain in the United States
+  - URL:     https://dailymed.nlm.nih.gov/
+
+Llama 3.1 (Base Model Weights)
+  - Source:  Meta Platforms Inc.
+  - Licence: Meta LLAMA 3 Community Licence Agreement
+  - URL:     https://llama.meta.com/
+  - Note:    Model weights are NOT distributed with this software. Users must
+             independently download weights through Ollama under the terms of the
+             Meta LLAMA 3 Community Licence.
+
+all-MiniLM-L6-v2 (Sentence Embeddings Model)
+  - Source:  UKP Lab, TU Darmstadt — distributed via Hugging Face Hub
+  - Licence: Apache 2.0
+  - Citation: Reimers N, Gurevych I. Sentence-BERT: Sentence Embeddings using
+              Siamese BERT-Networks. EMNLP 2019. arXiv:1908.10084
+  - Note:    Model weights are NOT distributed with this software. They are
+             downloaded automatically by sentence-transformers on first use.
+
+REGULATORY FRAMEWORK REFERENCES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ICH E2B(R3) — Electronic Standards for the Transfer of Regulatory Information
+  Guideline: ICH E2B(R3), 2016.
+  Publisher: International Council for Harmonisation of Technical Requirements
+             for Pharmaceuticals for Human Use (ICH).
+
+21 CFR Part 11 — Electronic Records; Electronic Signatures
+  Publisher: U.S. Food and Drug Administration.
+
+CIOMS Working Group XIV — Artificial Intelligence in Clinical Trials
+  Guidance referenced for bias monitoring framework (Principle 6: demographic
+  stratification of model performance).
+  Publisher: Council for International Organizations of Medical Sciences (CIOMS).
+
+ICH M2 — Electronic Standards for the Transfer of Regulatory Information
+  Publisher: International Council for Harmonisation.
+
+DISCLAIMER
+━━━━━━━━━━
+
+This software is provided for research and evaluation purposes only.
+It is NOT a validated, regulatory-submission-ready pharmacovigilance system.
+In particular:
+
+  - E2B(R3) XML exports require manual MedDRA coding before submission to any
+    ICH M2-compliant regulatory gateway (see governance/decisions.md ADR-001).
+
+  - This software has NOT been validated against a labelled ICSR benchmark
+    dataset (see governance/decisions.md ADR-004).
+
+  - Users are solely responsible for ensuring compliance with applicable laws,
+    regulations, and licence agreements in their jurisdiction before using this
+    software in any regulated activity.

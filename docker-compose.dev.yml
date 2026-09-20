@@ -1,0 +1,38 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# docker-compose.dev.yml — Development override
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Extends docker-compose.yml for local development:
+#   - Mounts source code as a volume (live reload without rebuild)
+#   - Enables uvicorn --reload
+#   - Keeps audit data in local ./audit directory (not named volume)
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+services:
+  icsr-hitl:
+    build:
+      # Build the full image including source (dev gets hot-reload via volume mount)
+      target: runtime
+    volumes:
+      # Mount source for live reload (overrides image source)
+      - .:/app
+      # Keep local audit/ and data/ directories
+      - ./audit:/app/audit
+      - ./checkpoints:/app/checkpoints
+      - ./data:/app/data
+    environment:
+      - RELOAD=true
+    command:
+      - uvicorn
+      - hitl.main:app
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "8000"
+      - --reload
+      - --log-config
+      - /dev/null
