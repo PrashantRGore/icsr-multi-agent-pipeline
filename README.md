@@ -11,7 +11,18 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 [![Security](https://img.shields.io/badge/Secrets-None%20Committed-brightgreen)](#security)
 
-An end-to-end **Individual Case Safety Report (ICSR)** processing pipeline built on a 7-agent LangGraph architecture with Human-in-the-Loop (HITL) review, 21 CFR Part 11 audit trail, and ICH E2B(R3) XML export — all running **locally, at zero ongoing cost**, using open-source LLMs via Ollama.
+An end-to-end **Individual Case Safety Report (ICSR)** processing pipeline built on a 7-agent LangGraph architecture with Human-in-the-Loop (HITL) review, audit trail controls, and ICH E2B(R3) XML export — all running **locally, at zero ongoing cost**, using open-source LLMs via Ollama.
+
+> [!CAUTION]
+> **Research and Portfolio Prototype — Not for Production Use with Real Patient Data**
+>
+> This repository is a **research and portfolio prototype**. It must **not** be used with real patient data or for regulatory submission without:
+> - Appropriate independent validation and security assessment
+> - Production-grade security controls (TLS, network isolation, enterprise IAM)
+> - Required organisational and regulatory authorisation
+> - A valid MedDRA licence (required for ICH E2B(R3) regulatory transmission — see [ADR-001](./governance/decisions.md))
+>
+> See the [LICENSE](./LICENSE) for the full disclaimer and the [Security](#security) section for deployment guidance.
 
 ---
 
@@ -550,6 +561,9 @@ python -m pytest tests/unit/test_e2b_exporter.py -v
 | No hardcoded API keys in source | ✅ | All secrets loaded via `os.getenv()` |
 | No paid external APIs called at runtime | ✅ | Only RxNorm (NLM — free) and local Ollama |
 | `DB_ENCRYPTION_KEY` is blank in `.env.example` | ✅ | Users generate their own key locally |
+| `APP_ENV=production` enforces encryption | ✅ | Server refuses to start if keys are absent |
+| Ollama not exposed to host network | ✅ | Accessible only on Docker internal network |
+| API bound to `127.0.0.1:8000` by default | ✅ | Local-only; for remote access use TLS + reverse proxy (see `docker-compose.yml`) |
 | `LICENSE` file present | ✅ | MIT with full third-party notices |
 
 ### What should never be committed
@@ -583,7 +597,7 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | NCI CTCAE v5 | U.S. National Cancer Institute | US Gov — Public Domain |
 | OAE (Ontology of Adverse Events) | OBO Foundry | CC BY 4.0 — He Y et al., *J Biomed Semantics* 2014 |
 | RxNorm | U.S. National Library of Medicine | NLM Terms of Service (free) |
-| WHO-UMC Causality Scale | Uppsala Monitoring Centre | Publicly available for non-commercial use |
+| WHO-UMC Causality Scale | Uppsala Monitoring Centre | Research/demo use — see note below |
 | FDA DailyMed SPL | U.S. FDA / NLM | US Gov — Public Domain |
 
 > **WHO-UMC note:** The causality-assessment implementation is included for **research and demonstration purposes only**. Organisations planning commercial deployment should verify applicable WHO-UMC terms before use.

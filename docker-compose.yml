@@ -73,7 +73,17 @@ services:
       ollama:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      # ── Network security: API bound to localhost only ─────────────────────────────
+      # 127.0.0.1:8000 means the API is reachable ONLY from the local machine.
+      # This is the safe default for a local portfolio/demo deployment.
+      #
+      # For enterprise deployment behind a reverse proxy (nginx, Caddy, Traefik):
+      #   1. Remove this ports block entirely, or bind to a private network interface.
+      #   2. Terminate TLS at the reverse proxy and forward only to this container.
+      #   3. Restrict inbound traffic with firewall/security group rules.
+      #
+      # Do NOT expose 0.0.0.0:8000 to the internet without TLS and access controls.
+      - "127.0.0.1:8000:8000"
     env_file:
       - .env
     environment:

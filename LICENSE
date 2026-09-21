@@ -73,7 +73,11 @@ RxNorm
 
 WHO-UMC Causality Assessment Scale
   - Source:  Uppsala Monitoring Centre (WHO Programme for International Drug Monitoring)
-  - Licence: Publicly available for non-commercial use
+  - Use in this project: Research and demonstration purposes only (see DISCLAIMER).
+  - Note:    The WHO-UMC causality scale is referenced as a conceptual framework.
+             Users and organisations should independently verify current WHO-UMC
+             terms of use for their specific deployment context, particularly
+             before any commercial or regulatory use.
   - URL:     https://www.who-umc.org/
 
 FDA DailyMed Structured Product Labelling (SPL)
