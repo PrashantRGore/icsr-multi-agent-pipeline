@@ -35,6 +35,7 @@ HITL correction payload (hitl_correction dict):
 from __future__ import annotations
 
 import logging
+import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -55,10 +56,15 @@ def get_checkpointer(db_path: Path = CHECKPOINT_DB_PATH) -> SqliteSaver:
     Database: checkpoints/pipeline.db (SQLite WAL mode, shared across all cases
     via different thread_ids).
 
-    21 CFR Part 11: checkpoints are append-only by design (SQLite WAL).
+    Implementation note: langgraph-checkpoint-sqlite ≥ 3.1 changed
+    SqliteSaver.from_conn_string() to return a context manager, which
+    newer LangGraph rejects. We pass an open sqlite3.Connection directly.
+    check_same_thread=False is safe here because OllamaClient uses
+    Semaphore(1), ensuring only one pipeline thread runs at a time.
     """
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    checkpointer = SqliteSaver.from_conn_string(str(db_path))
+    conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    checkpointer = SqliteSaver(conn)
     logger.info("Checkpointer (SqliteSaver) initialised at: %s", db_path)
     return checkpointer
 

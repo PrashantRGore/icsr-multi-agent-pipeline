@@ -62,7 +62,7 @@ The project is designed with a single non-negotiable constraint: **zero recurrin
 | Feature | Description |
 |---|---|
 | 🤖 **7-Agent LangGraph Pipeline** | Extraction → RxNorm → Triage → Coding → Causality → Narrative → QC Auditor |
-| 🔒 **21 CFR Part 11 Audit Trail** | Immutable SQLite `audit_log` with UPDATE/DELETE triggers; content hashing |
+| 🔒 **Audit Trail Controls** | Append-only SQLite `audit_log` with UPDATE/DELETE triggers and content hashing; inspired by 21 CFR Part 11 controls — see [governance/decisions.md](./governance/decisions.md) |
 | 👁️ **HITL Review API** | FastAPI server with `X-API-Key` auth; QPPV review, correction, and sign-off |
 | 📄 **ICH E2B(R3) XML Export** | E2B(R3)-structured XML with CTCAE-coded reactions and ADR-001 MedDRA note |
 | 🏷️ **Adverse Event Coding** | CTCAE v5 + OAE (CC BY 4.0) via FAISS semantic search |
@@ -186,8 +186,8 @@ The project is designed with a single non-negotiable constraint: **zero recurrin
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/icsr-engine.git
-cd icsr-engine
+git clone https://github.com/PrashantRGore/icsr-multi-agent-pipeline.git
+cd icsr-multi-agent-pipeline
 
 # 2. Copy environment template
 cp .env.example .env
@@ -208,15 +208,15 @@ curl http://localhost:8000/health
 ```
 
 The stack exposes:
-- `http://localhost:8000` — HITL Review API
-- `http://localhost:11434` — Ollama LLM server (internal)
+- `http://localhost:8000` — HITL Review API (localhost only by default)
+- Ollama is **internal** to Docker — not reachable from the host
 
 ### Option B: Local Development
 
 ```bash
 # 1. Clone and create virtual environment
-git clone https://github.com/<your-username>/icsr-engine.git
-cd icsr-engine
+git clone https://github.com/PrashantRGore/icsr-multi-agent-pipeline.git
+cd icsr-multi-agent-pipeline
 python -m venv .venv
 source .venv/bin/activate        # Linux/macOS
 .venv\Scripts\activate           # Windows
@@ -315,10 +315,10 @@ All endpoints require `X-API-Key: <reviewer-key>` unless stated otherwise.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/v1/cases` | Submit a new adverse event narrative for processing |
-| `GET` | `/api/v1/cases/{case_id}` | Retrieve case status and current pipeline state |
-| `GET` | `/api/v1/cases/{case_id}/review` | Get HITL review record for a queued case |
-| `POST` | `/api/v1/cases/{case_id}/review` | Submit QPPV correction and sign-off |
+| `POST` | `/api/v1/cases/run` | Submit a new adverse event narrative for processing |
+| `GET` | `/api/v1/review/queue` | List all cases currently waiting for human review |
+| `GET` | `/api/v1/review/{review_id}` | Get full state snapshot for one queued case |
+| `POST` | `/api/v1/review/{review_id}/submit` | Submit QPPV correction and sign-off |
 
 ### Export
 
@@ -345,13 +345,15 @@ All endpoints require `X-API-Key: <reviewer-key>` unless stated otherwise.
 ### Example: Submit a Case
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/cases \
+curl -X POST http://localhost:8000/api/v1/cases/run \
   -H "X-API-Key: <your-reviewer-key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "narrative": "A 58-year-old female patient developed anaphylaxis within 30 minutes of receiving amoxicillin 500mg orally. She was hospitalised for 2 days. Previous penicillin allergy noted in records.",
-    "source": "spontaneous",
-    "country": "GB"
+    "case_id": "ICSR-2026-001",
+    "raw_narrative": "A 58-year-old female patient developed anaphylaxis within 30 minutes of receiving amoxicillin 500mg orally. She was hospitalised for 2 days. Previous penicillin allergy noted in records.",
+    "source_type": "spontaneous",
+    "country": "GB",
+    "received_date": "2026-10-01"
   }'
 ```
 
@@ -600,6 +602,8 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | WHO-UMC Causality Scale | Uppsala Monitoring Centre | Research/demo use — see note below |
 | FDA DailyMed SPL | U.S. FDA / NLM | US Gov — Public Domain |
 
+> **RxNorm/NLM attribution (required):** This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services. NLM does not endorse or recommend this product. Use of NLM data is subject to the [NLM Terms and Conditions](https://www.nlm.nih.gov/databases/download/terms_and_conditions.html).
+
 > **WHO-UMC note:** The causality-assessment implementation is included for **research and demonstration purposes only**. Organisations planning commercial deployment should verify applicable WHO-UMC terms before use.
 
 **Open-Source Software**
@@ -623,8 +627,8 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 
 - **ICH E2B(R3)** — Electronic Standards for the Transfer of Regulatory Information (2016). *International Council for Harmonisation (ICH)*.
 - **ICH M2** — Electronic Standards for the Transfer of Regulatory Information. *ICH*.
-- **21 CFR Part 11** — Electronic Records; Electronic Signatures. *U.S. FDA*.
-- **CIOMS WG XIV** — Artificial Intelligence in Clinical Trials, Principle 6 (Demographic Stratification). *Council for International Organizations of Medical Sciences*.
+- **21 CFR Part 11** — Electronic Records; Electronic Signatures. *U.S. FDA* (referenced as design inspiration; system is not formally validated).
+- **CIOMS WG XIV** — *Artificial Intelligence in Pharmacovigilance*. Council for International Organizations of Medical Sciences, Principle 6 (Demographic Stratification).
 
 ---
 

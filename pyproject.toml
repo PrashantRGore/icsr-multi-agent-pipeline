@@ -50,5 +50,10 @@ dependencies = [
 testpaths    = ["tests"]
 asyncio_mode = "auto"
 
+[tool.setuptools]
+# Explicit package list so `pip install -e .` works without ambiguity.
+# setuptools auto-discovery fails when multiple top-level package directories exist.
+packages = ["agents", "graph", "hitl", "hitl.routes", "infra", "schemas"]
+
 [tool.ruff]
 line-length = 100

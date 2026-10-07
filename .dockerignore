@@ -1,0 +1,48 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .dockerignore
+# Prevents sensitive runtime files from being baked into the Docker image.
+# The Dockerfile does COPY . . — without this file, a local .env (with
+# encryption keys), audit databases, and PII maps would be included in
+# the image layer, which is a serious security risk for shared images.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Secrets and configuration ─────────────────────────────────────────────────
+.env
+*.key
+*.pem
+*.crt
+
+# ── Runtime databases (must NEVER be baked into an image) ────────────────────
+audit/
+checkpoints/
+
+# ── PII entity maps ───────────────────────────────────────────────────────────
+data/pii_maps/
+
+# ── FAISS indices (large; pulled/built at first-run time) ────────────────────
+data/*.faiss
+data/oae.faiss
+data/ctcae.faiss
+
+# ── Python artifacts ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.vscode/
+.idea/
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── OS artefacts ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
