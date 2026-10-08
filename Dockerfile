@@ -30,12 +30,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /build
 
-# Copy dependency manifest first (better layer caching)
-COPY pyproject.toml ./
+# Copy dependency manifests first (better layer caching)
+COPY pyproject.toml constraints.txt ./
 
 # Install all project dependencies into /install prefix
+# --constraint pins every package to the exact versions in constraints.txt,
+# preventing silent API-breaking upgrades between Docker builds.
 RUN pip install --upgrade pip \
- && pip install --prefix=/install --no-cache-dir \
+ && pip install --prefix=/install --no-cache-dir --constraint constraints.txt \
         "fastapi>=0.111" \
         "uvicorn[standard]>=0.30" \
         "pydantic>=2.7" \

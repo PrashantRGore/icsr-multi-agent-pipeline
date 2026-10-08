@@ -193,18 +193,32 @@ cd icsr-multi-agent-pipeline
 cp .env.example .env
 # Edit .env — at minimum, generate and set DB_ENCRYPTION_KEY (see Configuration)
 
-# 3. First-time initialisation (pulls Ollama model + creates QPPV reviewer)
+# 3. Start the full stack (must start before running docker_init)
+docker compose up -d
+
+# 4. First-time initialisation (pulls Ollama model + creates QPPV reviewer)
+#    Requires the stack to be running (uses docker compose exec internally)
 #    Linux / macOS:
 ./scripts/docker_init.sh
 #    Windows (PowerShell):
 .\scripts\docker_init.ps1
 
-# 4. Start the full stack
-docker compose up -d
-
 # 5. Verify the service is healthy
 curl http://localhost:8000/health
-# {"status":"healthy","version":"0.6.0","hitl_queue_depth":0}
+# Expected output (healthy, Ollama running):
+# {
+#   "status": "healthy",
+#   "version": "0.6.0",
+#   "checks": {
+#     "audit_db": {"status": "ok", "entry_count": 0},
+#     "auth_db":  {"status": "ok", "reviewer_count": 1},
+#     "hitl_queue": {"status": "ok", "pending": 0},
+#     "ollama":   {"status": "ok", "model": "llama3.1:8b-instruct-q4_K_M", "latency_ms": 42.1}
+#   },
+#   "encryption_active": true,
+#   "pii_deidentifier_active": true
+# }
+# Note: status="degraded" (not 200→5503) if Ollama is unreachable but all other checks pass.
 ```
 
 The stack exposes:
@@ -289,7 +303,7 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama server URL |
 | `OLLAMA_MODEL` | `llama3.1:8b-instruct-q4_K_M` | Model to use for all agents |
 | `OLLAMA_TEMPERATURE` | `0.0` | Deterministic output (recommended for ICSR) |
-| `AUDIT_DB_PATH` | `audit/audit.db` | 21 CFR Part 11 immutable audit log |
+| `AUDIT_DB_PATH` | `audit/audit.db` | Append-only audit log (Part 11-inspired controls) |
 | `AUTH_DB_PATH` | `audit/auth.db` | Reviewer API key store (bcrypt-hashed) |
 | `LEARNING_DB_PATH` | `audit/learning.db` | HITL correction signal store |
 | `DB_ENCRYPTION_KEY` | *(empty)* | Fernet key for column-level encryption — **set in production** |
@@ -399,7 +413,7 @@ icsr-engine/
 │       └── metrics.py          # Prometheus /metrics endpoint
 │
 ├── infra/                      # Infrastructure layer
-│   ├── audit_db.py             # 21 CFR Part 11 immutable AuditDB
+│   ├── audit_db.py             # Append-only AuditDB (Part 11-inspired controls)
 │   ├── auth_db.py              # Reviewer key management (bcrypt)
 │   ├── learning_db.py          # HITL correction signal store
 │   ├── encrypted_db.py         # Fernet column-level encryption mixin
@@ -516,24 +530,45 @@ python -m pytest tests/unit/test_e2b_exporter.py -v
 
 **Current status:** `447 passed, 0 failed` (Python 3.13.5, pytest 9.0.2)
 
-| Test Module | Tests | Coverage |
+Test counts are generated from `pytest --collect-only -q`. The table lists every test file; the overall total is 447.
+
+| Test File | Tests | Focus |
 |---|---|---|
-| `test_extraction_agent` | 35 | Entity extraction accuracy |
-| `test_triage_agent` | 28 | Risk tier + seriousness logic |
-| `test_coding_agent` | 32 | CTCAE/OAE code mapping |
-| `test_causality_agent` | 25 | WHO-UMC scale assignment |
-| `test_narrative_agent` | 22 | CIOMS-I narrative generation |
-| `test_audit_db` | 38 | 21 CFR Part 11 immutability + hashing |
-| `test_auth_db` | 24 | Reviewer key lifecycle |
-| `test_learning_db` | 30 | Correction signal storage + queries |
-| `test_e2b_exporter` | 20 | E2B(R3) XML structure + ADR-001 |
-| `test_manage_reviewers` | 15 | CLI: add, list, rotate, deactivate |
-| `test_learning_report` | 15 | Markdown + JSON report generation |
-| `test_learning_pipeline` | 50 | End-to-end learning pipeline |
-| `test_health` | 8 | API health, auth, queue endpoints |
-| `test_export_endpoint` | 12 | E2B XML + JSON export API |
-| `test_learning_endpoint` | 9 | Learning report API endpoints |
-| *…others* | ~84 | PII, metrics, pipeline, QC auditor |
+| `unit/test_extraction_agent` | 10 | Entity extraction accuracy |
+| `unit/test_extraction_schema` | 20 | Pydantic schema validation |
+| `unit/test_triage_agent` | 9 | Risk tier + seriousness logic |
+| `unit/test_triage_schema` | 11 | Triage schema edge cases |
+| `unit/test_coding_agent` | 8 | CTCAE/OAE code mapping |
+| `unit/test_causality_agent` | 6 | WHO-UMC scale assignment |
+| `unit/test_causality_schema` | 11 | Causality schema validation |
+| `unit/test_narrative_agent` | 8 | CIOMS-I narrative generation |
+| `unit/test_qc_agent` | 7 | QC auditor routing logic |
+| `unit/test_qc_schema` | 10 | QC schema validation |
+| `unit/test_listedness_agent` | 7 | Listedness evaluation logic |
+| `unit/test_audit_db` | 13 | Append-only trigger enforcement + hashing |
+| `unit/test_audit_db_queue` | 11 | HITL queue persistence |
+| `unit/test_auth_db` | 16 | Reviewer key lifecycle |
+| `unit/test_encrypted_db` | 18 | Fernet column encryption |
+| `unit/test_learning_db` | — | *(no unit tests; covered by integration)* |
+| `unit/test_learning_pipeline` | 31 | End-to-end learning pipeline |
+| `unit/test_learning_report` | 16 | Markdown + JSON report generation |
+| `unit/test_e2b_exporter` | 25 | E2B(R3) XML structure + ADR-001 |
+| `unit/test_manage_reviewers` | 18 | CLI: add, list, rotate, deactivate |
+| `unit/test_pii_deidentifier` | 15 | Presidio PII detection + encryption |
+| `unit/test_rxnorm_client` | 10 | Drug normalisation client |
+| `unit/test_ollama_client` | 13 | LLM client + semaphore logic |
+| `unit/test_case_graph` | 12 | LangGraph pipeline compilation |
+| `unit/test_graph_state` | 11 | GraphState schema transitions |
+| `unit/test_json_formatter` | 19 | Structured log formatter |
+| `unit/test_log_filter` | 13 | PII log filter |
+| `unit/test_metrics` | 24 | Prometheus metrics counters |
+| `integration/test_health` | 9 | API health, auth, queue endpoints |
+| `integration/test_hitl_api` | 14 | Full HITL review workflow |
+| `integration/test_export_endpoint` | 12 | E2B XML + JSON export API |
+| `integration/test_learning_endpoint` | 9 | Learning report API endpoints |
+| `integration/test_pipeline_case001` | 11 | Pipeline: anaphylaxis case |
+| `integration/test_pipeline_case002` | 10 | Pipeline: hepatotoxicity case |
+| `integration/test_pipeline_case003` | 10 | Pipeline: paediatric case |
 
 ---
 
@@ -602,7 +637,8 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | WHO-UMC Causality Scale | Uppsala Monitoring Centre | Research/demo use — see note below |
 | FDA DailyMed SPL | U.S. FDA / NLM | US Gov — Public Domain |
 
-> **RxNorm/NLM attribution (required):** This product uses publicly available data courtesy of the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services. NLM does not endorse or recommend this product. Use of NLM data is subject to the [NLM Terms and Conditions](https://www.nlm.nih.gov/databases/download/terms_and_conditions.html).
+> **RxNorm/NLM attribution (required by [RxNav Terms of Service](https://lhncbc.nlm.nih.gov/RxNav/TermsofService.html)):**
+> "This product uses publicly available data from the U.S. National Library of Medicine (NLM), National Institutes of Health, Department of Health and Human Services; NLM is not responsible for the product and does not endorse or recommend this or any other product."
 
 > **WHO-UMC note:** The causality-assessment implementation is included for **research and demonstration purposes only**. Organisations planning commercial deployment should verify applicable WHO-UMC terms before use.
 

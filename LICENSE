@@ -70,6 +70,12 @@ RxNorm
   - Source:  U.S. National Library of Medicine (NLM)
   - Licence: NLM Terms of Service (free for non-commercial and commercial use with attribution)
   - URL:     https://www.nlm.nih.gov/research/umls/rxnorm/
+             https://lhncbc.nlm.nih.gov/RxNav/TermsofService.html
+  - Required attribution (verbatim per RxNav Terms of Service):
+    "This product uses publicly available data from the U.S. National Library
+    of Medicine (NLM), National Institutes of Health, Department of Health and
+    Human Services; NLM is not responsible for the product and does not endorse
+    or recommend this or any other product."
 
 WHO-UMC Causality Assessment Scale
   - Source:  Uppsala Monitoring Centre (WHO Programme for International Drug Monitoring)
