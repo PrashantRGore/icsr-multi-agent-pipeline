@@ -528,7 +528,7 @@ python -m pytest tests/integration/ -v
 python -m pytest tests/unit/test_e2b_exporter.py -v
 ```
 
-**Current status:** `447 passed, 0 failed` (Python 3.13.5, pytest 9.0.2)
+**Current status:** `447 passed, 0 failed` (Python 3.11 / 3.13, pytest 9.1.1)
 
 Test counts are generated from `pytest --collect-only -q`. The table lists every test file; the overall total is 447.
 
@@ -568,7 +568,7 @@ Test counts are generated from `pytest --collect-only -q`. The table lists every
 | `integration/test_learning_endpoint` | 9 | Learning report API endpoints |
 | `integration/test_pipeline_case001` | 11 | Pipeline: anaphylaxis case |
 | `integration/test_pipeline_case002` | 10 | Pipeline: invalid case — missing reporter |
-| `integration/test_pipeline_case003` | 10 | Pipeline: paediatric case |
+| `integration/test_pipeline_case003` | 10 | Pipeline: atorvastatin DILI with positive rechallenge |
 
 ---
 
