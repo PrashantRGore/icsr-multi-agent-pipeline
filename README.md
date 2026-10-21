@@ -452,7 +452,7 @@ icsr-engine/
 
 ## Governance & Compliance
 
-### 21 CFR Part 11 Alignment
+### Part 11-Inspired Controls
 
 The audit database (`infra/audit_db.py`) implements the following controls:
 
@@ -567,7 +567,7 @@ Test counts are generated from `pytest --collect-only -q`. The table lists every
 | `integration/test_export_endpoint` | 12 | E2B XML + JSON export API |
 | `integration/test_learning_endpoint` | 9 | Learning report API endpoints |
 | `integration/test_pipeline_case001` | 11 | Pipeline: anaphylaxis case |
-| `integration/test_pipeline_case002` | 10 | Pipeline: hepatotoxicity case |
+| `integration/test_pipeline_case002` | 10 | Pipeline: invalid case — missing reporter |
 | `integration/test_pipeline_case003` | 10 | Pipeline: paediatric case |
 
 ---
