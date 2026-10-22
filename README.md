@@ -658,10 +658,11 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | Ollama (Python client) | Ollama contributors | MIT |
 | bcrypt | The bcrypt authors | Apache 2.0 |
 
-> **Built with Llama** (required by [Meta Llama 3.1 Community Licence](https://llama.meta.com/llama3_1/license/)):
-> This project is **Built with Llama**. Llama 3.1 model weights are used via Ollama for local inference.
-> *Meta Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.*
-> Model weights are not distributed with this repository and must be downloaded independently via Ollama.
+> **Built with Llama** (required by [Meta Llama 3.1 Community Licence](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE)):\
+> This project is **Built with Llama**. Llama 3.1 model weights are used via Ollama for local inference.\
+> *Meta Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.*\
+> Model weights are not distributed with this repository and must be downloaded independently via Ollama.\
+> All use of Llama 3.1 in this project complies with Meta's [Acceptable Use Policy](https://www.llama.com/llama3/use-policy/). The mandatory HITL review layer ensures no AI-generated pharmacovigilance output is acted upon without a qualified human reviewer.
 
 > **Note on `all-MiniLM-L6-v2`:** Model weights are downloaded independently via `sentence-transformers` under the Apache 2.0 licence.
 
