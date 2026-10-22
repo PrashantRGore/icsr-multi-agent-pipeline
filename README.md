@@ -10,6 +10,7 @@
 [![Tests](https://img.shields.io/badge/Tests-447%20passing-brightgreen?logo=pytest)](./tests/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 [![Security](https://img.shields.io/badge/Secrets-None%20Committed-brightgreen)](#security)
+[![Built with Llama](https://img.shields.io/badge/Built%20with-Llama%203.1-0467DF?logo=meta&logoColor=white)](https://llama.meta.com/)
 
 An end-to-end **Individual Case Safety Report (ICSR)** processing pipeline built on a 7-agent LangGraph architecture with Human-in-the-Loop (HITL) review, audit trail controls, and ICH E2B(R3) XML export — all running **locally, at zero ongoing cost**, using open-source LLMs via Ollama.
 
@@ -657,7 +658,12 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | Ollama (Python client) | Ollama contributors | MIT |
 | bcrypt | The bcrypt authors | Apache 2.0 |
 
-> **Note on model weights:** Llama 3.1 and `all-MiniLM-L6-v2` model weights are **not distributed with this repository**. They are downloaded independently via Ollama and `sentence-transformers` respectively, under their own licence terms.
+> **Built with Llama** (required by [Meta Llama 3.1 Community Licence](https://llama.meta.com/llama3_1/license/)):
+> This project is **Built with Llama**. Llama 3.1 model weights are used via Ollama for local inference.
+> *Meta Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.*
+> Model weights are not distributed with this repository and must be downloaded independently via Ollama.
+
+> **Note on `all-MiniLM-L6-v2`:** Model weights are downloaded independently via `sentence-transformers` under the Apache 2.0 licence.
 
 **Regulatory Frameworks Referenced**
 
