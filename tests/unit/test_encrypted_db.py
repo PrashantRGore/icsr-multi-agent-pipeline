@@ -36,8 +36,9 @@ def key() -> str:
 
 
 @pytest.fixture
-def db_plain() -> _TestDB:
+def db_plain(monkeypatch: pytest.MonkeyPatch) -> _TestDB:
     """No encryption key — plaintext mode."""
+    monkeypatch.delenv("DB_ENCRYPTION_KEY", raising=False)
     return _TestDB(encryption_key=None)
 
 

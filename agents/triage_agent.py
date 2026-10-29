@@ -125,7 +125,8 @@ class TriageAgent(BaseAgent):
         )
 
         seriousness_signals: list[str] = data.get("seriousness_signals", [])
-        confidence: float              = float(data.get("confidence", 0.5))
+        raw_triage_conf                = data.get("confidence")
+        confidence: float              = float(raw_triage_conf) if raw_triage_conf is not None else 0.5
         failure_reasons: list[str]     = data.get("failure_reasons", [])
         status_str: str                = data.get("status", "PENDING_HITL")
 

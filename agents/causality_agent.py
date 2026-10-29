@@ -101,7 +101,11 @@ class CausalityAgent(BaseAgent):
 
     def _run_inner(self, state: GraphState) -> dict:
         case_id   = state["case_id"]
-        entities: Optional[ExtractedCaseEntities] = state.get("extracted_entities")
+        entities_raw = state.get("extracted_entities")
+        if isinstance(entities_raw, dict):
+            entities = ExtractedCaseEntities.model_validate(entities_raw)
+        else:
+            entities = entities_raw
         risk_tier = RiskTier(state.get("risk_tier") or "TIER_2")
 
         if entities is None:
@@ -185,7 +189,8 @@ class CausalityAgent(BaseAgent):
                         source_reference = None,
                     ))
 
-            confidence = float(a.get("confidence", 0.5))
+            raw_conf = a.get("confidence")
+            confidence = float(raw_conf) if raw_conf is not None else 0.5
             min_confidence = min(min_confidence, confidence)
 
             ca = CausalityAssessment(

@@ -266,11 +266,12 @@ class ICSRPipeline:
         if entry is None:
             raise ValueError(f"No halted case found for review_id={review_id!r}")
 
-        thread_id   = entry["thread_id"]
-        state_snap  = entry["state_snap"]
-        config      = {"configurable": {"thread_id": thread_id}}
+        thread_id     = entry["thread_id"]
+        state_snap    = entry["state_snap"]
+        config        = {"configurable": {"thread_id": thread_id}}
+        current_state = self.get_state(thread_id) or state_snap
 
-        merged = build_resume_state(state_snap, correction)
+        merged = build_resume_state(current_state, correction)
 
         logger.info(
             "ICSRPipeline.resume_case: review_id=%s thread_id=%s correction_keys=%s",

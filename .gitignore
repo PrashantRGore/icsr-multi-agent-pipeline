@@ -99,8 +99,9 @@ governance/PSMF_*.md
 !governance/psmf_template.md
 
 # ─── Downloaded / generated data files ───────────────────────────────────────
-# OAE ontology is downloaded by build_oae_index.py — not source code
+# OAE ontology and CTCAE raw tables are downloaded by build scripts — not source code
 data/oae.owl
+data/ctcae_v5.xlsx
 data/rsi_spl/
 
 # ─── Docker ──────────────────────────────────────────────────────────────────

@@ -32,22 +32,54 @@ router = APIRouter(prefix="/api/v1/cases", tags=["Export"])
 _exporter = E2BExporter()
 
 
+def _normalize_dict(obj: Any) -> Any:
+    """Recursively convert Pydantic models or nested objects to dicts."""
+    if hasattr(obj, "model_dump"):
+        return _normalize_dict(obj.model_dump())
+    elif isinstance(obj, dict):
+        return {k: _normalize_dict(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_normalize_dict(x) for x in obj]
+    return obj
+
+
 def _get_audit_db(request: Request) -> AuditDB:
     return request.app.state.audit_db
 
 
-def _get_case_state(audit_db: AuditDB, case_id: str) -> dict:
+def _get_case_state(audit_db: AuditDB, case_id: str, request: Request | None = None) -> dict:
     """
-    Retrieve the most recent finalized state snapshot for a case from AuditDB.
+    Retrieve the most recent finalized state snapshot for a case.
+    First checks the live pipeline checkpointer, then falls back to AuditDB.
     Raises 404 if no completed entries exist for case_id.
     """
+    import json
+
+    # 1. Try to fetch from live pipeline if request is provided
+    if request is not None:
+        pipeline = getattr(request.app.state, "pipeline", None)
+        if pipeline is not None:
+            try:
+                with audit_db._connect() as conn:
+                    q_row = conn.execute(
+                        "SELECT thread_id FROM hitl_queue WHERE case_id = ? ORDER BY enqueued_at DESC LIMIT 1",
+                        (case_id,),
+                    ).fetchone()
+                if q_row:
+                    st = pipeline.get_state(q_row["thread_id"])
+                    if st and st.get("pipeline_complete"):
+                        return _normalize_dict(dict(st))
+            except Exception:
+                pass
+
+    # 2. Try looking up in audit_log by trace_id or case_id in extra_metadata
     try:
         with audit_db._connect() as conn:
             row = conn.execute(
                 """SELECT extra_metadata FROM audit_log
-                   WHERE trace_id = ? AND status = 'SUCCESS'
+                   WHERE (trace_id = ? OR extra_metadata LIKE ?) AND status = 'SUCCESS'
                    ORDER BY timestamp DESC LIMIT 1""",
-                (case_id,),
+                (case_id, f'%"{case_id}"%'),
             ).fetchone()
     except Exception as exc:
         raise HTTPException(
@@ -65,11 +97,12 @@ def _get_case_state(audit_db: AuditDB, case_id: str) -> dict:
             ),
         )
 
-    import json
     raw = row["extra_metadata"]
     if isinstance(raw, bytes) and raw.startswith(b"\xfe\xfe"):
-        # Encrypted — cannot decrypt here without the key; return minimal state
-        return {"case_id": case_id, "_encrypted": True}
+        try:
+            raw = audit_db._decrypt(raw)
+        except Exception:
+            return {"case_id": case_id, "_encrypted": True}
     try:
         return json.loads(raw) if isinstance(raw, str) else {}
     except Exception:
@@ -98,7 +131,7 @@ def export_e2b(
     _reviewer: ReviewerRecord = Depends(require_reviewer),
 ) -> Response:
     audit_db = _get_audit_db(request)
-    state    = _get_case_state(audit_db, case_id)
+    state    = _get_case_state(audit_db, case_id, request=request)
 
     if state.get("_encrypted"):
         raise HTTPException(
@@ -136,7 +169,7 @@ def export_json(
     import json as _json
 
     audit_db = _get_audit_db(request)
-    state    = _get_case_state(audit_db, case_id)
+    state    = _get_case_state(audit_db, case_id, request=request)
 
     if state.get("_encrypted"):
         raise HTTPException(
@@ -148,6 +181,7 @@ def export_json(
     causality_matrix = state.get("causality_matrix") or {}
     coded_events    = state.get("coded_events") or []
     triage          = state.get("triage_output") or {}
+    risk_tier       = triage.get("risk_tier") if isinstance(triage, dict) else getattr(triage, "risk_tier", None)
 
     return {
         "case_id":             case_id,
@@ -157,7 +191,7 @@ def export_json(
             "regulatory submission. See governance/decisions.md ADR-001."
         ),
         "safetyreportid":      case_id,
-        "seriousness":         triage.get("risk_tier"),
+        "seriousness":         risk_tier,
         "patient": {
             "sex":       entities.get("patient_sex") if isinstance(entities, dict) else None,
             "age":       entities.get("patient_age") if isinstance(entities, dict) else None,

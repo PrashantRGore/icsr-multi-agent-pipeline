@@ -37,6 +37,7 @@ An end-to-end **Individual Case Safety Report (ICSR)** processing pipeline built
 - [Quick Start](#quick-start)
   - [Option A: Docker (Recommended)](#option-a-docker-recommended)
   - [Option B: Local Development](#option-b-local-development)
+  - [Option C: Interactive Clinical Web UI (Streamlit)](#option-c-interactive-clinical-web-ui-streamlit)
 - [First-Time Setup](#first-time-setup)
 - [Configuration](#configuration)
 - [API Reference](#api-reference)
@@ -63,13 +64,14 @@ The project is designed with a single non-negotiable constraint: **zero recurrin
 | Feature | Description |
 |---|---|
 | 🤖 **7-Agent LangGraph Pipeline** | Extraction → RxNorm → Triage → Coding → Causality → Narrative → QC Auditor |
+| 🖥️ **Interactive Clinical Web UI** | Streamlit app (`app.py`) with 1-click profiles, 7-agent visualizer, Part 11-inspired sign-off & live tamper defense |
 | 🔒 **Audit Trail Controls** | Append-only SQLite `audit_log` with UPDATE/DELETE triggers and content hashing; inspired by 21 CFR Part 11 controls — see [governance/decisions.md](./governance/decisions.md) |
 | 👁️ **HITL Review API** | FastAPI server with `X-API-Key` auth; QPPV review, correction, and sign-off |
 | 📄 **ICH E2B(R3) XML Export** | E2B(R3)-structured XML with CTCAE-coded reactions and ADR-001 MedDRA note |
 | 🏷️ **Adverse Event Coding** | CTCAE v5 + OAE (CC BY 4.0) via FAISS semantic search |
 | 💊 **Drug Normalisation** | RxNorm REST API (NLM) — no API key, rate-limited at 85 req/min |
 | 🔐 **PII De-identification** | Microsoft Presidio + spaCy `en_core_web_lg`; Fernet-encrypted entity maps |
-| 🔑 **Column-Level Encryption** | Fernet AES-128 on sensitive audit columns; optional, off by default |
+| 🔑 **Column-Level Encryption** | Fernet (AES-128-CBC + HMAC-SHA256) on sensitive audit columns; optional, off by default |
 | 📊 **Prometheus Metrics** | `/metrics` endpoint with case counts, latency histograms, HITL queue depth |
 | 📈 **Learning Feedback Loop** | LearningDB captures HITL corrections; per-agent accuracy & bias reports |
 | 📋 **PSMF Auto-generation** | Script populates Pharmacovigilance System Master File template from live data |
@@ -79,60 +81,53 @@ The project is designed with a single non-negotiable constraint: **zero recurrin
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     ICSR Engine — System Overview                    │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph INGESTION["1. Privacy-First Intake"]
+        A["Clinical Narrative\n(Unstructured Text / CIOMS-I)"] --> B["Presidio PII De-Identifier\n(Local spaCy NER)"]
+        B --> C["Pseudonymized Stream\n(PERSON_1, DATE_1)"]
+        B -.->|"Fernet (AES-128-CBC + HMAC-SHA256) Map"| PII_MAP["Encrypted PII Map\n(data/pii_maps/*.enc)"]
+    end
 
-  Adverse Event
-  Narrative (text)
-       │
-       ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                    LangGraph Pipeline (7 Agents)                  │
-│                                                                   │
-│  ① Extraction ──► ② RxNorm ──► ③ Triage ──► ④ Coding           │
-│       │                             │             │               │
-│  (entities)              (risk tier)       (CTCAE/OAE)           │
-│                                                   │               │
-│                  ⑤ Causality ◄───────────────────┘               │
-│                       │                                           │
-│                  (WHO-UMC scale)                                  │
-│                       │                                           │
-│                  ⑥ Narrative                                      │
-│                       │                                           │
-│                  (CIOMS-I text)                                   │
-│                       │                                           │
-│                  ⑦ QC Auditor                                     │
-│                       │                                           │
-│          ┌────────────┴────────────┐                              │
-│      PASS (≥threshold)        HITL_QUEUED                         │
-└──────────┼─────────────────────────┼──────────────────────────────┘
-           │                         │
-           ▼                         ▼
-    ┌──────────────┐         ┌──────────────────┐
-    │  AuditDB     │         │  HITL Review API  │
-    │  (SQLite,    │         │  (FastAPI :8000)  │
-    │  immutable)  │         │                  │
-    └──────┬───────┘         │  QPPV Review ──► │
-           │                 │  Correction       │
-           │                 │  Sign-off         │
-           │                 └────────┬─────────┘
-           │                          │
-           │◄─────────────────────────┘
-           │           (approved case written to AuditDB)
-           │
-           ▼
-    ┌──────────────────────────────────────────┐
-    │  Export                                  │
-    │  GET /api/v1/cases/{id}/export/e2b  →   │
-    │  ICH E2B(R3) XML  (regulatory ready*)   │
-    │  GET /api/v1/cases/{id}/export/json →   │
-    │  Structured JSON (ICH field names)       │
-    └──────────────────────────────────────────┘
+    subgraph PIPELINE["2. 7-Agent LangGraph Deterministic Engine (temp=0.0)"]
+        C --> N1["① Triage Agent\n(ICH E2A Criteria and Risk Tier)"]
+        N1 --> N2["② Extraction Agent\n(MAGMA Graph and Demographics)"]
+        N2 -->|"Suspect Drugs"| RX["RxNorm REST API\n(NLM CUI Normalisation)"]
+        RX --> N2
+        N2 --> N3["③ Adversarial QC Agent\n(Temporal Logic and Clinical Negatives)"]
+        N3 --> N4["④ Coding Agent\n(FAISS k-NN Semantic Search)"]
+        DB_FAISS[("CTCAE v5.0 and OAE Indices\n4,022 + 9,403 Vectors")] <--> N4
+        N4 --> N5["⑤ Causality Agent\n(WHO-UMC Algorithmic Scoring)"]
+        N5 --> N6["⑥ Listedness Agent\n(FDA DailyMed SPL XML Parser)"]
+        N6 --> N7["⑦ Narrative Agent\n(5-Section CIOMS-I Narrative)"]
+    end
 
-  * MedDRA LLT/PT coding required before regulatory submission (ADR-001)
+    subgraph DECISION["3. Gating and Human-in-the-Loop"]
+        N7 --> G1{"Auto-Pass Check\nConfidence >= Threshold\nand Risk Tier != TIER_1?"}
+        G1 -->|"Yes (Low Risk)"| SUCCESS["Final State Certified\npipeline_complete = True"]
+        G1 -->|"No (Mandatory / Low Conf)"| QUEUE["HITL Queue\n(audit/audit.db: hitl_queue)"]
+        
+        QUEUE --> REVIEW_UI["🧑‍⚖️ HITL Review Interface\n(Streamlit UI / FastAPI :8000)"]
+        REVIEW_UI -->|"QPPV Review and Part 11-Inspired Rationale"| RESUME["LangGraph Resume Case\n(SqliteSaver Checkpoints)"]
+        RESUME --> SUCCESS
+    end
+
+    subgraph OUTPUTS["4. Regulatory Outputs and Governance"]
+        SUCCESS --> EXP1["ICH E2B-R3 XML Export\n(CTCAE Terms + ADR-001 MedDRA Note)"]
+        SUCCESS --> EXP2["Structured JSON Export\n(E2B-Aligned Field Schema)"]
+        SUCCESS --> AUDIT[("Immutable AuditDB\nPart 11-Inspired Triggers\nSHA-256 Hashes")]
+        REVIEW_UI -.->|"Correction Signal"| LEARN[("LearningDB\nError and Bias Telemetry")]
+        AUDIT & LEARN -.-> PSMF["PSMF Component Report\n(GAMP 5 Category 4/5)"]
+        REVIEW_UI & SUCCESS -.-> METRICS["Prometheus Observability\n(GET /metrics)"]
+    end
+
+    style INGESTION fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc
+    style PIPELINE fill:#0f172a,stroke:#818cf8,stroke-width:2px,color:#f8fafc
+    style DECISION fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#f8fafc
+    style OUTPUTS fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#f8fafc
 ```
+
+> **Note on MedDRA Licensing (ADR-001)**: Per [ADR-001](./governance/decisions.md), CTCAE v5.0 preferred terms are used in `<reactionmeddrapt>` to preserve the 100% cost-free constraint without violating MSSO copyright. MedDRA coding must be completed by the QPPV prior to formal regulatory submission.
 
 ### Agent Responsibilities
 
@@ -161,7 +156,7 @@ The project is designed with a single non-negotiable constraint: **zero recurrin
 | **Vector Search** | [FAISS](https://github.com/facebookresearch/faiss) + `sentence-transformers` | MIT · **Free** |
 | **PII Protection** | [Microsoft Presidio](https://github.com/microsoft/presidio) | MIT · **Free** |
 | **Databases** | SQLite (AuditDB · AuthDB · LearningDB) | Public domain · **Free** |
-| **Encryption** | [cryptography](https://cryptography.io/) (Fernet / AES-128) | Apache 2.0 · **Free** |
+| **Encryption** | [cryptography](https://cryptography.io/) (Fernet: AES-128-CBC + HMAC-SHA256) | Apache 2.0 · **Free** |
 | **Auth** | bcrypt API-key hashing | Apache 2.0 · **Free** |
 | **Observability** | Prometheus-format `/metrics` | Apache 2.0 · **Free** |
 | **Containers** | Docker + Docker Compose | Apache 2.0 · **Free** |
@@ -262,6 +257,26 @@ uvicorn hitl.main:app --host 0.0.0.0 --port 8000 --workers 1
 # 9. Verify
 curl http://localhost:8000/health
 ```
+
+### Option C: Interactive Clinical Web UI (Streamlit)
+
+For live demonstrations to recruiters, talent acquisition specialists, and technical interviewers:
+
+```bash
+# Launch the clinical demo interface (starts on http://localhost:8501)
+streamlit run app.py
+```
+
+The interactive application demonstrates:
+- **1-Click Reviewer Profiles**: Instant session login as `QPPV-01` or `PHYSICIAN-01`, plus interactive Part 11-inspired reviewer key provisioning with salted bcrypt hashing.
+- **Dual Execution Modes**:
+  - 🚀 **Instant Showcase Mode**: Sub-second replay of verified clinical execution traces (`ICSR-20261029-END` and alternative scenarios) — ideal for 15-minute interviews.
+  - 🧠 **Live Ollama Execution**: Real-time end-to-end execution through local Ollama (`llama3.1:8b-instruct-q4_K_M`) on CPU/GPU.
+- **7-Agent Stepper Visualizer**: Step-by-step visibility into Triage, Extraction, QC Critique, FAISS Terminology Coding, WHO-UMC Causality, DailyMed Listedness, and CIOMS-I Narrative synthesis.
+- **Presidio Privacy Inspector**: Side-by-side view showing raw clinical text vs. redacted `<PERSON_1>`, `<DATE_1>` tokens stored in Fernet (AES-128-CBC + HMAC-SHA256) encrypted maps.
+- **Interactive HITL Review Station**: Side-by-side narrative vs extraction review, clinical override forms, and Part 11-inspired clinical justification.
+- **Regulatory Export Studio**: Syntax-highlighted **ICH E2B(R3) XML** & structured JSON downloads with ADR-001 MedDRA licensing notices.
+- **Live Part 11-Inspired Tamper-Defense Demo**: Interactive trigger attempting an unauthorized `UPDATE audit_log`, catching and proving the active SQLite trigger blocking modifications.
 
 ---
 
@@ -390,6 +405,7 @@ python -c "import xml.etree.ElementTree as ET; ET.parse('ICSR-2026-001.xml'); pr
 ```
 icsr-engine/
 │
+├── app.py                      # Interactive Streamlit clinical demonstration UI
 ├── agents/                     # 7 LangGraph agent definitions
 │   ├── extraction_agent.py     # Entity extraction (patient, drug, event)
 │   ├── rxnorm_client.py        # Drug normalisation via NLM RxNorm REST
@@ -654,7 +670,7 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 | spaCy + `en_core_web_lg` | Explosion AI GmbH | MIT |
 | FAISS | Meta Platforms Inc. | MIT |
 | sentence-transformers / `all-MiniLM-L6-v2` | UKP Lab, TU Darmstadt | Apache 2.0 |
-| cryptography (Fernet / AES-128) | cryptography.io | Apache 2.0 / BSD |
+| cryptography (Fernet: AES-128-CBC + HMAC-SHA256) | cryptography.io | Apache 2.0 / BSD |
 | Ollama (Python client) | Ollama contributors | MIT |
 | bcrypt | The bcrypt authors | Apache 2.0 |
 
@@ -662,7 +678,7 @@ This is a **deliberate, synthetic placeholder** — it is not a real API key and
 > This project is **Built with Llama**. Llama 3.1 model weights are used via Ollama for local inference.\
 > *Meta Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.*\
 > Model weights are not distributed with this repository and must be downloaded independently via Ollama.\
-> All use of Llama 3.1 in this project complies with Meta's [Acceptable Use Policy](https://www.llama.com/llama3/use-policy/). The mandatory HITL review layer ensures no AI-generated pharmacovigilance output is acted upon without a qualified human reviewer.
+> Use of Llama 3.1 in this project is designed to align with Meta's [Acceptable Use Policy](https://www.llama.com/llama3_1/use-policy/). The mandatory Human-in-the-Loop review layer ensures no AI-generated pharmacovigilance output is submitted or acted upon without prior review and sign-off by a qualified human reviewer.
 
 > **Note on `all-MiniLM-L6-v2`:** Model weights are downloaded independently via `sentence-transformers` under the Apache 2.0 licence.
 

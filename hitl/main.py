@@ -47,6 +47,9 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, AsyncGenerator
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

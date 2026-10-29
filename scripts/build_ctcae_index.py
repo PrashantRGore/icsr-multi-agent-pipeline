@@ -51,10 +51,10 @@ _CTCAE_URLS = [
 ]
 
 # Known column names in the NCI Excel (may vary by mirror — we search case-insensitively)
-_TERM_COL_CANDIDATES   = ["CTCAE Term", "Term", "AE Term"]
-_SOC_COL_CANDIDATES    = ["MedDRA SOC", "SOC", "System Organ Class"]
+_TERM_COL_CANDIDATES   = ["CTCAE Term", "CTCAE PT", "Term", "AE Term", "NCIt PT"]
+_SOC_COL_CANDIDATES    = ["MedDRA SOC", "SOC", "System Organ Class", "MedDRA Term"]
 _GRADE_COL_CANDIDATES  = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5"]
-_DEF_COL_CANDIDATES    = ["Definition", "CTCAE Definition"]
+_DEF_COL_CANDIDATES    = ["Definition", "CTCAE Definition", "CTCAE 5.0 Definition", "NCIt Definition"]
 
 
 # ─────────────────────────────────────────────────────────────────────────────

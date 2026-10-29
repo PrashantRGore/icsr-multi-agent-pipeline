@@ -36,10 +36,11 @@ dependencies = [
     "numpy>=1.26",
     # Graph (MAGMA intra-case)
     "networkx>=3.3",
-    # HITL API
+    # HITL Web App & API
     "fastapi>=0.111",
     "uvicorn[standard]>=0.30",
     "python-multipart>=0.0.9",
+    "streamlit>=1.35",
     # Testing
     "pytest>=8.2",
     "pytest-asyncio>=0.23",

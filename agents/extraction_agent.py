@@ -266,7 +266,8 @@ class ExtractionAgent(BaseAgent):
                 enriched_drugs.append(sd)
 
         # ── Build ExtractedCaseEntities ───────────────────────────────────────
-        confidence = float(data.get("extraction_confidence", 0.5))
+        raw_conf = data.get("extraction_confidence")
+        confidence = float(raw_conf) if raw_conf is not None else 0.5
 
         entities = ExtractedCaseEntities(
             case_id               = case_id,

@@ -80,7 +80,7 @@ class EncryptedDBMixin:
                 key_bytes = raw_key.encode() if isinstance(raw_key, str) else raw_key
                 self._fernet = Fernet(key_bytes)
                 logger.info(
-                    "%s: column-level encryption ENABLED (Fernet/AES-256-GCM)",
+                    "%s: column-level encryption ENABLED (Fernet: AES-128-CBC + HMAC-SHA256)",
                     self.__class__.__name__,
                 )
             except Exception as exc:

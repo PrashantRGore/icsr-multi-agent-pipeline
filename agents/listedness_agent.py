@@ -77,8 +77,17 @@ class ListednessAgent(BaseAgent):
 
     def _run_inner(self, state: GraphState) -> dict:
         case_id      = state["case_id"]
-        entities: Optional[ExtractedCaseEntities] = state.get("extracted_entities")
-        coded_events: Optional[list[CodedEvent]]  = state.get("coded_events")
+        entities_raw = state.get("extracted_entities")
+        if isinstance(entities_raw, dict):
+            entities = ExtractedCaseEntities.model_validate(entities_raw)
+        else:
+            entities = entities_raw
+
+        coded_raw = state.get("coded_events")
+        if isinstance(coded_raw, list):
+            coded_events = [CodedEvent.model_validate(c) if isinstance(c, dict) else c for c in coded_raw]
+        else:
+            coded_events = coded_raw
 
         if entities is None:
             raise ValueError(f"ListednessAgent: extracted_entities missing for case={case_id}")

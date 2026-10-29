@@ -81,7 +81,11 @@ class CodingAgent(BaseAgent):
 
     def _run_inner(self, state: GraphState) -> dict:
         case_id  = state["case_id"]
-        entities: Optional[ExtractedCaseEntities] = state.get("extracted_entities")
+        entities_raw = state.get("extracted_entities")
+        if isinstance(entities_raw, dict):
+            entities = ExtractedCaseEntities.model_validate(entities_raw)
+        else:
+            entities = entities_raw
 
         if entities is None:
             raise ValueError(
@@ -137,7 +141,7 @@ class CodingAgent(BaseAgent):
                 # Attempt to extract OAE ID from metadata
                 oae_id  = top.get("oae_id") or top.get("id")
                 oae_term= top.get("label")  or top.get("term") or top.get("text", "")
-                score   = float(top.get("score", 0.0))
+                score   = float(top.get("score") or 0.0)
 
                 if score >= OAE_THRESHOLD:
                     # Validate OAE ID format
@@ -163,7 +167,7 @@ class CodingAgent(BaseAgent):
                 top        = ctcae_result[0]
                 ctcae_term = top.get("term") or top.get("label") or top.get("text", "")
                 ctcae_grade= top.get("grade")
-                score      = float(top.get("score", 0.0))
+                score      = float(top.get("score") or 0.0)
 
                 if score >= CTCAE_THRESHOLD:
                     return CodedEvent(

@@ -135,7 +135,13 @@ class QCAgent(BaseAgent):
 
         logger.info("QCAgent: processing case=%s", case_id)
 
-        entities_json = entities.model_dump_json(indent=2)
+        if hasattr(entities, "model_dump_json"):
+            entities_json = entities.model_dump_json(indent=2)
+        elif isinstance(entities, dict):
+            import json
+            entities_json = json.dumps(entities, indent=2)
+        else:
+            entities_json = str(entities)
 
         # ── LLM adversarial critique ──────────────────────────────────────────
         user_message = (
@@ -194,7 +200,8 @@ class QCAgent(BaseAgent):
             any(c.severity == CritiqueSeverity.BLOCKER for c in critique_items)
             or bool(hard_neg_violations)
         )
-        qc_confidence = float(data.get("qc_confidence", 0.9))
+        raw_qc_conf = data.get("qc_confidence")
+        qc_confidence = float(raw_qc_conf) if raw_qc_conf is not None else 0.9
         approved      = not has_blocker
 
         qc_report = QCReport(

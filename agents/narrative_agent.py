@@ -98,7 +98,11 @@ class NarrativeAgent(BaseAgent):
         narrative = response.text.strip()
 
         # ── Self-check: key entities present ─────────────────────────────────
-        entities: Optional[ExtractedCaseEntities] = state.get("extracted_entities")
+        entities_raw = state.get("extracted_entities")
+        if isinstance(entities_raw, dict):
+            entities = ExtractedCaseEntities.model_validate(entities_raw)
+        else:
+            entities = entities_raw
         missing_entities: list[str] = []
         if entities:
             for drug in entities.suspect_drugs:
@@ -147,8 +151,17 @@ class NarrativeAgent(BaseAgent):
         """
         lines: list[str] = [f"CASE ID: {state['case_id']}\n"]
 
-        entities: Optional[ExtractedCaseEntities] = state.get("extracted_entities")
-        triage:   Optional[TriageOutput]           = state.get("triage_output")
+        entities_raw = state.get("extracted_entities")
+        if isinstance(entities_raw, dict):
+            entities = ExtractedCaseEntities.model_validate(entities_raw)
+        else:
+            entities = entities_raw
+
+        triage_raw = state.get("triage_output")
+        if isinstance(triage_raw, dict):
+            triage = TriageOutput.model_validate(triage_raw)
+        else:
+            triage = triage_raw
 
         # Patient demographics
         if entities:

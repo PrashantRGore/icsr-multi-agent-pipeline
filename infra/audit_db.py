@@ -151,7 +151,7 @@ class AuditDB(EncryptedDBMixin):
     serialized WAL mode for safe concurrent reads from LangGraph checkpointer.
 
     Encryption: When DB_ENCRYPTION_KEY is set (or encryption_key kwarg is provided),
-    the following columns are stored encrypted (Fernet/AES-256-GCM):
+    the following columns are stored encrypted (Fernet: AES-128-CBC + HMAC-SHA256):
       audit_log.extra_metadata
       hitl_review_log.original_value, corrected_value
       hitl_queue.state_snap
@@ -374,7 +374,12 @@ class AuditDB(EncryptedDBMixin):
         State snapshot is encrypted if DB_ENCRYPTION_KEY is configured.
         Called by HITLQueue.enqueue() when a case is halted.
         """
-        encrypted_snap = self._encrypt(json.dumps(state_snap, default=str))
+        def _snap_default(obj: Any) -> Any:
+            if hasattr(obj, "model_dump"):
+                return obj.model_dump()
+            return str(obj)
+
+        encrypted_snap = self._encrypt(json.dumps(state_snap, default=_snap_default))
         with self._connect() as conn:
             conn.execute(
                 """
