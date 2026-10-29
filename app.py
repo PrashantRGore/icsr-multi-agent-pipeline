@@ -414,7 +414,7 @@ st.markdown(
             <span class="badge-pill pill-green">Deterministic 0.0 Temp</span>
             <span class="badge-pill pill-cyan">4,022 CTCAE Terms</span>
             <span class="badge-pill pill-blue">9,403 OAE Terms</span>
-            <span class="badge-pill pill-purple">ICH E2B(R3) Compliant</span>
+            <span class="badge-pill pill-purple">E2B(R3)-structured</span>
             <span class="badge-pill pill-amber">Local CPU Execution</span>
         </div>
     </div>
@@ -439,7 +439,7 @@ with tab_overview:
     st.markdown("### 🏥 System Architecture & Multi-Agent Design")
     st.write(
         "This platform addresses the central operational challenge in modern pharmacovigilance: **high-volume, complex narrative triage and processing** "
-        "without hallucination risk, external API costs, or regulatory non-compliance."
+        "without hallucination risk or external API costs."
     )
 
     # 3 High-level KPI Cards
@@ -517,7 +517,7 @@ with tab_overview:
             "pseudonyms `<PERSON_1>`, `<DATE_1>` stored in Fernet (AES-128-CBC + HMAC-SHA256) encrypted maps."
         )
         st.write(
-            "- **Deterministic Output Guarantee**: All generative agents run at `temperature=0.0` with Pydantic V2 schema validation. "
+            "- **Low-variance (temperature 0)**: All generative agents run at `temperature=0.0` with Pydantic V2 schema validation. "
             "Any schema violation or low confidence immediately halts for Human-in-the-Loop review."
         )
 
@@ -1146,7 +1146,7 @@ with tab_governance:
     st.markdown("---")
     st.markdown("#### 📋 Pharmacovigilance System Master File (PSMF)")
     st.write(
-        "A compliant PSMF component document has been auto-populated from live database metrics: "
-        "`governance/psmf_0.6.0_2026-10-29.md`. It documents GAMP 5 Category 4/5 compliance, "
+        "PSMF template auto-populated from live metrics: "
+        "`governance/psmf_0.6.0_2026-10-29.md`. It documents GAMP 5 Category 4/5 guidance, "
         "the 447 passing validation tests, and QPPV oversight policies."
     )

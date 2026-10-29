@@ -104,7 +104,7 @@ flowchart TD
 
     subgraph DECISION["3. Gating and Human-in-the-Loop"]
         N7 --> G1{"Auto-Pass Check\nConfidence >= Threshold\nand Risk Tier != TIER_1?"}
-        G1 -->|"Yes (Low Risk)"| SUCCESS["Final State Certified\npipeline_complete = True"]
+        G1 -->|"Yes (Low Risk)"| SUCCESS["Final State Complete\npipeline_complete = True"]
         G1 -->|"No (Mandatory / Low Conf)"| QUEUE["HITL Queue\n(audit/audit.db: hitl_queue)"]
         
         QUEUE --> REVIEW_UI["🧑‍⚖️ HITL Review Interface\n(Streamlit UI / FastAPI :8000)"]
