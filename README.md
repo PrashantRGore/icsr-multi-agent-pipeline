@@ -2,6 +2,8 @@
 
 > **v0.6.0** · Zero-cost · Privacy-first · Runs entirely on your hardware
 
+![ICSR Engine Multi-Agent Pipeline](assets/banner.jpg)
+
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2%2B-4A154B)](https://github.com/langchain-ai/langgraph)
